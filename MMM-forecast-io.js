@@ -162,7 +162,7 @@ Module.register("MMM-forecast-io", {
     temperature.innerHTML = " " + this.temp + "&deg;";
     large.appendChild(temperature);
 
-// ====== wind 
+// ====== wind now
     if (this.config.showWind) {
       var padding = document.createElement("span");
       padding.className = "dim";
@@ -263,17 +263,7 @@ Module.register("MMM-forecast-io", {
     }
     context.restore();
 
-// ===== 6hr tick lines
-    var tickCount = Math.round(width / (stepSize*6));
-    context.save();
-    context.strokeStyle = 'gray';
-    context.lineWidth = 2;
-    for (i = 1; i < tickCount; i++) {             
-      context.moveTo(i * (stepSize*6), height);
-      context.lineTo(i * (stepSize*6), height - 7);
-      context.stroke();
-    }
-    context.restore();
+// ticks were here....
 
 // ====== freezing and hot lines
     i = 80;       // ========== hot line, at 80 degrees
@@ -294,12 +284,12 @@ Module.register("MMM-forecast-io", {
     context.stroke();
     context.restore();
 
+
 // ====== graph of precipIntensity  (inches of liquid water per hour)
     var data = this.weatherData.hourly.data;
 
     context.save();
-    context.strokeStyle = 'blue';
-    context.fillStyle = 'blue';
+
 //    context.globalCompositeOperation = 'xor';
     context.beginPath();
     context.moveTo(0, height);
@@ -313,7 +303,27 @@ Module.register("MMM-forecast-io", {
     }
     context.lineTo(width, height);
     context.closePath();
+
+    context.strokeStyle = 'green';
+    context.stroke();
+
+    context.fillStyle = 'blue';
     context.fill();
+    context.restore();
+
+
+// ===== 6hr tick lines
+    var tickCount = Math.round(width / (stepSize*6));
+    context.save();
+    context.beginPath();
+    context.strokeStyle = 'grey';
+    context.fillStyle = 'grey';
+    context.lineWidth = 2;
+    for (i = 1; i < tickCount; i++) {             
+      context.moveTo(i * (stepSize*6), height);
+      context.lineTo(i * (stepSize*6), height - 7);
+      context.stroke();
+    }
     context.restore();
 
 
@@ -322,8 +332,9 @@ Module.register("MMM-forecast-io", {
     var tempTemp;
 
     context.save();
-    context.strokeStyle = 'gray';
-    context.lineWidth = 2;
+    context.strokeStyle = 'white';
+    context.lineWidth = 1;   // 2
+    context.beginPath();
     context.moveTo(0, height);
 
     var stepSizeTemp = Math.round(width / (24+12));
@@ -353,22 +364,59 @@ Module.register("MMM-forecast-io", {
 
         context.beginPath();
         context.font = "10px Arial";
-        context.fillStyle = "grey";
+        context.fillStyle = "white";
         context.fillText( tempTemp, tempX, tempY );
         context.stroke();
 
-
-//        timeLabel = this.weatherData.hourly.data[i].time;
-//        timeLabel = moment(timeLabel*1000).format("ha");
-//        timeLabel = timeLabel.replace("m", " ");
-//        context.beginPath();
-//        context.font = "10px Arial";
-//        context.fillStyle = "grey";
-//        context.fillText( timeLabel , tempX, 10 );
-//        context.stroke();
-
       }
     }
+
+
+// ========= graph of wind
+    var numMins = 60 * 24 * 1.5;     // minutes in graph, 1.5 days
+    var tempWind;
+
+    context.save();
+    context.strokeStyle = 'grey';
+    context.lineWidth = 1;
+
+    context.beginPath();
+    context.moveTo(0, height);
+
+    var stepSizeTemp = Math.round(width / (24+12));
+    var tempX;
+    var tempY;
+
+    for (i = 0; i < (24+12+1); i++) {
+      tempX = i * stepSizeTemp;
+      tempY = height - (this.weatherData.hourly.data[i].windSpeed + 10);
+
+      context.lineTo( tempX, tempY );       // line from last hour to this hour
+      context.stroke();
+
+      context.beginPath();
+      context.arc(tempX, tempY, 1 ,0,2*Math.PI);          // hour-dots
+      context.stroke();
+    }
+    context.restore();
+
+
+    context.save();
+    for (i = 0; i < (24+12+1); i++) {     // text label for wind on graph
+      if ((i % 2) == 1) {
+        tempX = (i * stepSizeTemp) - 5;
+        tempY = height - (this.weatherData.hourly.data[i].windSpeed + 10 + 3);
+        tempWind = Math.round( this.weatherData.hourly.data[i].windSpeed );
+
+        context.beginPath();
+        context.font = "10px Arial";
+        context.fillStyle = "grey";
+        context.fillText( tempWind, tempX, tempY );
+        context.stroke();
+      }
+    }
+    context.restore();
+
 
     return element;
   },
