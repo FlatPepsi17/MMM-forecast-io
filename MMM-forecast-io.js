@@ -263,7 +263,6 @@ Module.register("MMM-forecast-io", {
     }
     context.restore();
 
-// ticks were here....
 
 // ====== freezing and hot lines
     i = 80;       // ========== hot line, at 80 degrees
@@ -290,7 +289,6 @@ Module.register("MMM-forecast-io", {
 
     context.save();
 
-//    context.globalCompositeOperation = 'xor';
     context.beginPath();
     context.moveTo(0, height);
     var intensity;
@@ -304,7 +302,7 @@ Module.register("MMM-forecast-io", {
     context.lineTo(width, height);
     context.closePath();
 
-    context.strokeStyle = 'green';
+    context.strokeStyle = 'blue';
     context.stroke();
 
     context.fillStyle = 'blue';
@@ -386,10 +384,11 @@ Module.register("MMM-forecast-io", {
     var stepSizeTemp = Math.round(width / (24+12));
     var tempX;
     var tempY;
+    var windGraphScale = 2.5;     // vertical scale of wind speed
 
     for (i = 0; i < (24+12+1); i++) {
       tempX = i * stepSizeTemp;
-      tempY = height - (this.weatherData.hourly.data[i].windSpeed + 10);
+      tempY = height - ((this.weatherData.hourly.data[i].windSpeed * windGraphScale) + 5);
 
       context.lineTo( tempX, tempY );       // line from last hour to this hour
       context.stroke();
@@ -405,7 +404,7 @@ Module.register("MMM-forecast-io", {
     for (i = 0; i < (24+12+1); i++) {     // text label for wind on graph
       if ((i % 2) == 1) {
         tempX = (i * stepSizeTemp) - 5;
-        tempY = height - (this.weatherData.hourly.data[i].windSpeed + 10 + 3);
+        tempY = height - ((this.weatherData.hourly.data[i].windSpeed * windGraphScale) + 5 + 3);
         tempWind = Math.round( this.weatherData.hourly.data[i].windSpeed );
 
         context.beginPath();
