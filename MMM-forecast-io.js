@@ -235,7 +235,7 @@ Module.register("MMM-forecast-io", {
     var precipitationGraphYShift = -10;  // 0..120 range, thus graph -10 to 110 degrees
     var stepSize = (width / (24+12) );    // pixels per hour for 1.5 days
 
-// ======= shade blocks for daylight hours
+// ======= shade blocks for daylight hours  (grey=day, black=night)
     var now = new Date();
     now = Math.floor(now / 1000);    // current time in Unix format
     var timeUnilSunrise;
@@ -309,6 +309,33 @@ Module.register("MMM-forecast-io", {
     context.fill();
     context.restore();
 
+// ====== graph of snow 
+//    var data = this.weatherData.hourly.data;
+
+    context.save();
+
+    context.beginPath();
+    context.moveTo(0, height);
+    var intensity;
+    for (i = 0; i < data.length; i++) {
+      intensity = 0;
+      if (data[i].precipType == "snow") {
+        if (data[i].precipIntensity > 0) {
+          intensity = (data[i].precipIntensity * height * 5) + 4;   // make trace stand out
+        }
+      }
+      context.lineTo(i * stepSize, height - intensity);
+    }
+    context.lineTo(width, height);
+    context.closePath();
+
+    context.strokeStyle = 'white';
+    context.stroke();
+
+    context.fillStyle = 'white';
+    context.fill();
+    context.restore();
+
 
 // ===== 6hr tick lines
     var tickCount = Math.round(width / (stepSize*6));
@@ -371,51 +398,52 @@ Module.register("MMM-forecast-io", {
 
 
 // ========= graph of wind
-    var numMins = 60 * 24 * 1.5;     // minutes in graph, 1.5 days
-    var tempWind;
+    if (this.config.showWind) {
+      var numMins = 60 * 24 * 1.5;     // minutes in graph, 1.5 days
+      var tempWind;
 
-    context.save();
-    context.strokeStyle = 'grey';
-    context.lineWidth = 1;
-
-    context.beginPath();
-    context.moveTo(0, height);
-
-    var stepSizeTemp = Math.round(width / (24+12));
-    var tempX;
-    var tempY;
-    var windGraphScale = 2.5;     // vertical scale of wind speed
-
-    for (i = 0; i < (24+12+1); i++) {
-      tempX = i * stepSizeTemp;
-      tempY = height - ((this.weatherData.hourly.data[i].windSpeed * windGraphScale) + 5);
-
-      context.lineTo( tempX, tempY );       // line from last hour to this hour
-      context.stroke();
+      context.save();
+      context.strokeStyle = 'grey';
+      context.lineWidth = 1;
 
       context.beginPath();
-      context.arc(tempX, tempY, 1 ,0,2*Math.PI);          // hour-dots
-      context.stroke();
-    }
-    context.restore();
+      context.moveTo(0, height);
 
+      var stepSizeTemp = Math.round(width / (24+12));
+      var tempX;
+      var tempY;
+      var windGraphScale = 2.5;     // vertical scale of wind speed
 
-    context.save();
-    for (i = 0; i < (24+12+1); i++) {     // text label for wind on graph
-      if ((i % 2) == 1) {
-        tempX = (i * stepSizeTemp) - 5;
-        tempY = height - ((this.weatherData.hourly.data[i].windSpeed * windGraphScale) + 5 + 3);
-        tempWind = Math.round( this.weatherData.hourly.data[i].windSpeed );
+      for (i = 0; i < (24+12+1); i++) {
+        tempX = i * stepSizeTemp;
+        tempY = height - ((this.weatherData.hourly.data[i].windSpeed * windGraphScale) + 5);
+
+        context.lineTo( tempX, tempY );       // line from last hour to this hour
+        context.stroke();
 
         context.beginPath();
-        context.font = "10px Arial";
-        context.fillStyle = "grey";
-        context.fillText( tempWind, tempX, tempY );
+        context.arc(tempX, tempY, 1 ,0,2*Math.PI);          // hour-dots
         context.stroke();
       }
-    }
-    context.restore();
+      context.restore();
 
+
+      context.save();
+      for (i = 0; i < (24+12+1); i++) {     // text label for wind on graph
+        if ((i % 2) == 1) {
+          tempX = (i * stepSizeTemp) - 5;
+          tempY = height - ((this.weatherData.hourly.data[i].windSpeed * windGraphScale) + 5 + 3);
+          tempWind = Math.round( this.weatherData.hourly.data[i].windSpeed );
+
+          context.beginPath();
+          context.font = "10px Arial";
+          context.fillStyle = "grey";
+          context.fillText( tempWind, tempX, tempY );
+          context.stroke();
+        }
+      }
+      context.restore();
+    }
 
     return element;
   },
